@@ -33,10 +33,13 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     combined_data = pd.concat(all_data, ignore_index=True)
     combined_data = combined_data.sort_values(by='datetime').reset_index(drop=True)
 
+    # Apply the formula: y = -0.2216x + 25.367
+    combined_data['Altitude'] = -0.2216 * combined_data['Current (mA)'] + 25.367
+
     # Apply Savitzky–Golay filter for smoothing
     window_size = 5   # Adjust for smoothing (should be odd). Tune for accuracy.
     poly_order = 2    # Quadratic smoothing
-    smoothed_values = savgol_filter(combined_data['Current (mA)'], window_size, poly_order)
+    smoothed_values = savgol_filter(combined_data['Altitude'], window_size, poly_order)
 
     # Identify extrema
     distance = 96 # ~8 hours of 5-min intervals
@@ -51,7 +54,7 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
 
     # Visualization
     plt.figure(figsize=(12, 6))
-    plt.plot(combined_data['datetime'], combined_data['Current (mA)'], label='Original Data', alpha=0.6, color='blue')
+    plt.plot(combined_data['datetime'], combined_data['Altitude'], label='Original Data', alpha=0.6, color='blue')
     plt.plot(combined_data['datetime'], smoothed_values, label='Smoothed Data', color='orange', linewidth=2)
     plt.scatter(combined_data['datetime'].iloc[peaks], smoothed_values[peaks], label='Maxima', color='red', marker='o')
     plt.scatter(combined_data['datetime'].iloc[troughs], smoothed_values[troughs], label='Minima', color='green', marker='o')
