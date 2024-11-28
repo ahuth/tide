@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import argparse
 
 def process_tidal_data(input_files, output_file='result.xlsx'):
-    # Step 1: Load specified Excel files
     all_data = []
+
+    # Load specified Excel files
     for file in input_files:
         try:
             # Read the relevant sheet, skipping the first 6 rows and using row 7 as header
@@ -26,26 +27,27 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
         print("No valid data files provided.")
         return
 
-    # Step 2: Combine and sort data
+    # Combine and sort data
     combined_data = pd.concat(all_data, ignore_index=True)
     combined_data = combined_data.sort_values(by='datetime').reset_index(drop=True)
 
-    # Step 3: Apply Savitzky–Golay filter for smoothing
+    # Apply Savitzky–Golay filter for smoothing
     window_size = 25  # Adjust for smoothing (should be odd)
     poly_order = 2    # Quadratic smoothing
     smoothed_values = savgol_filter(combined_data['Current (mA)'], window_size, poly_order)
 
-    # Step 4: Identify extrema
-    peaks, _ = find_peaks(smoothed_values, distance=96)  # 96 = ~8 hours for 5-min data
-    troughs, _ = find_peaks(-smoothed_values, distance=96)
+    # Identify extrema
+    distance = 96 # ~8 hours of 5-min intervals
+    peaks, _ = find_peaks(smoothed_values, distance=distance)
+    troughs, _ = find_peaks(-smoothed_values, distance=distance)
 
-    # Step 5: Add extrema labels
+    # Add extrema labels
     combined_data['Smoothed'] = smoothed_values
-    combined_data['Extrema'] = 'None'
+    combined_data['Extrema'] = ''
     combined_data.loc[peaks, 'Extrema'] = 'Max'
     combined_data.loc[troughs, 'Extrema'] = 'Min'
 
-    # Step 6: Visualization
+    # Visualization
     plt.figure(figsize=(12, 6))
     plt.plot(combined_data['datetime'], combined_data['Current (mA)'], label='Original Data', alpha=0.6, color='blue')
     plt.plot(combined_data['datetime'], smoothed_values, label='Smoothed Data', color='orange', linewidth=2)
@@ -56,10 +58,10 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     plt.ylabel('Tide Level')
     plt.legend()
     plt.tight_layout()
-    plt.savefig('tidal_data_plot.png')  # Save the plot
-    plt.show()  # Display the plot
+    plt.savefig('tidal_data_plot.png')
+    plt.show()
 
-    # Step 7: Save to a new Excel file
+    # Save to a new Excel file
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
         combined_data.to_excel(writer, index=False, sheet_name='Processed Data')
     print(f"Results saved to {output_file}")
@@ -70,6 +72,5 @@ if __name__ == "__main__":
     parser.add_argument('input_files', nargs='+', help='List of Excel files to process')
     parser.add_argument('--output', default='result.xlsx', help='Output Excel file (default: result.xlsx)')
     args = parser.parse_args()
-
-    # Call the processing function with the input files
+    print(f'Running script on {len(args.input_files)} files...')
     process_tidal_data(args.input_files, output_file=args.output)
