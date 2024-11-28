@@ -1,7 +1,7 @@
 import pandas as pd
 from scipy.signal import savgol_filter, find_peaks
 import matplotlib.pyplot as plt
-import sys
+import argparse
 
 def process_tidal_data(input_files, output_file='result.xlsx'):
     # Step 1: Load specified Excel files
@@ -14,11 +14,11 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
             df['datetime'] = pd.to_datetime(df['Date'].astype(str) + ' ' + df['Time'].astype(str))
             all_data.append(df[['datetime', 'Values']])
         except Exception as e:
-            print(f"Error processing {file}: {e}", file=sys.stderr)
+            print(f"Error processing {file}: {e}")
 
     # Check if any data was successfully loaded
     if not all_data:
-        print("No valid data files provided.", file=sys.stderr)
+        print("No valid data files provided.")
         return
 
     # Step 2: Combine and sort data
@@ -59,8 +59,12 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
         combined_data.to_excel(writer, index=False, sheet_name='Processed Data')
     print(f"Results saved to {output_file}")
 
-# Accept file names from stdin
+# Main function to handle command-line arguments
 if __name__ == "__main__":
-    print("Enter Excel file paths (one per line), followed by Ctrl+D (or Ctrl+Z on Windows):")
-    input_files = [line.strip() for line in sys.stdin if line.strip()]
-    process_tidal_data(input_files, output_file='result.xlsx')
+    parser = argparse.ArgumentParser(description="Process tidal data from Excel files.")
+    parser.add_argument('input_files', nargs='+', help='List of Excel files to process')
+    parser.add_argument('--output', default='result.xlsx', help='Output Excel file (default: result.xlsx)')
+    args = parser.parse_args()
+
+    # Call the processing function with the input files
+    process_tidal_data(args.input_files, output_file=args.output)
