@@ -32,7 +32,7 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     combined_data = combined_data.sort_values(by='datetime').reset_index(drop=True)
 
     # Apply Savitzky–Golay filter for smoothing
-    window_size = 25  # Adjust for smoothing (should be odd)
+    window_size = 5   # Adjust for smoothing (should be odd). Tune for accuracy.
     poly_order = 2    # Quadratic smoothing
     smoothed_values = savgol_filter(combined_data['Current (mA)'], window_size, poly_order)
 
