@@ -36,8 +36,8 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     smoothed_values = savgol_filter(combined_data['Current (mA)'], window_size, poly_order)
 
     # Step 4: Identify extrema
-    peaks, _ = find_peaks(smoothed_values, distance=144)  # 144 = ~12 hours for 5-min data
-    troughs, _ = find_peaks(-smoothed_values, distance=144)
+    peaks, _ = find_peaks(smoothed_values, distance=96)  # 96 = ~8 hours for 5-min data
+    troughs, _ = find_peaks(-smoothed_values, distance=96)
 
     # Step 5: Add extrema labels
     combined_data['Smoothed'] = smoothed_values
