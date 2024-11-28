@@ -2,6 +2,8 @@ import pandas as pd
 from scipy.signal import savgol_filter, find_peaks
 import matplotlib.pyplot as plt
 import argparse
+import os
+import sys
 
 def process_tidal_data(input_files, output_file='result.xlsx'):
     all_data = []
@@ -58,8 +60,17 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     plt.ylabel('Tide Level')
     plt.legend()
     plt.tight_layout()
-    plt.savefig('tidal_data_plot.png')
-    plt.show()
+
+    image_path = 'tidal_data_plot.png'
+    plt.savefig(image_path)
+
+    # Open the image using the system's default image viewer
+    if os.name == 'posix':  # macOS or Linux
+        os.system(f"open {image_path}" if sys.platform == 'darwin' else f"xdg-open {image_path}")
+    elif os.name == 'nt':  # Windows
+        os.system(f"start {image_path}")
+
+    plt.close()
 
     # Save to a new Excel file
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
