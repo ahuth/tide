@@ -38,6 +38,12 @@ Pass a list of files to process to tide.py
 python tide.py file1.xlsx file2.xlsx
 ```
 
-As a result, these files will be created:
+If your shell expands glob paths, you can run on all files in a directory with something like
+
+```sh
+python tide.py ./some/path/**/*.xlsx
+```
+
+These files will be created:
 - `result.xlsx`, with all the data and local minima and maxima identifed.
 - `tidal_data_plot.png`, with a graph of smoothed data.
