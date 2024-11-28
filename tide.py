@@ -8,11 +8,16 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     all_data = []
     for file in input_files:
         try:
-            # Read the relevant sheet and columns
-            df = pd.read_excel(file, sheet_name='R73157 RFCURRENT - Data', usecols=['Date', 'Time', 'Values'])
-            # Combine Date and Time into a single datetime column
-            df['datetime'] = pd.to_datetime(df['Date'].astype(str) + ' ' + df['Time'].astype(str))
-            all_data.append(df[['datetime', 'Values']])
+            # Read the relevant sheet, skipping the first 6 rows and using row 7 as header
+            df = pd.read_excel(file, sheet_name='R73157 RFCURRENT - Data', header=6, usecols=['Date', 'Current (mA)'])
+
+            # Ensure that 'Date' is in proper datetime format
+            if not pd.api.types.is_datetime64_any_dtype(df['Date']):
+                df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+
+            # Add the relevant columns
+            df['datetime'] = df['Date']  # The 'Date' column is used as the datetime
+            all_data.append(df[['datetime', 'Current (mA)']])
         except Exception as e:
             print(f"Error processing {file}: {e}")
 
@@ -28,7 +33,7 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     # Step 3: Apply Savitzky–Golay filter for smoothing
     window_size = 25  # Adjust for smoothing (should be odd)
     poly_order = 2    # Quadratic smoothing
-    smoothed_values = savgol_filter(combined_data['Values'], window_size, poly_order)
+    smoothed_values = savgol_filter(combined_data['Current (mA)'], window_size, poly_order)
 
     # Step 4: Identify extrema
     peaks, _ = find_peaks(smoothed_values, distance=144)  # 144 = ~12 hours for 5-min data
@@ -42,7 +47,7 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
 
     # Step 6: Visualization
     plt.figure(figsize=(12, 6))
-    plt.plot(combined_data['datetime'], combined_data['Values'], label='Original Data', alpha=0.6, color='blue')
+    plt.plot(combined_data['datetime'], combined_data['Current (mA)'], label='Original Data', alpha=0.6, color='blue')
     plt.plot(combined_data['datetime'], smoothed_values, label='Smoothed Data', color='orange', linewidth=2)
     plt.scatter(combined_data['datetime'].iloc[peaks], smoothed_values[peaks], label='Maxima', color='red', marker='o')
     plt.scatter(combined_data['datetime'].iloc[troughs], smoothed_values[troughs], label='Minima', color='green', marker='o')
