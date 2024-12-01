@@ -52,6 +52,39 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     combined_data.loc[peaks, 'Extrema'] = 'Max'
     combined_data.loc[troughs, 'Extrema'] = 'Min'
 
+    # Calculate mean times between tides
+    high_tides_times = combined_data.loc[peaks, 'datetime']
+    low_tides_times = combined_data.loc[troughs, 'datetime']
+
+    high_tide_deltas = high_tides_times.diff().dropna().dt.total_seconds() / 3600  # Convert to hours
+    low_tide_deltas = low_tides_times.diff().dropna().dt.total_seconds() / 3600   # Convert to hours
+
+    mean_high_tide_interval = high_tide_deltas.mean()
+    mean_low_tide_interval = low_tide_deltas.mean()
+
+    # Calculate max high tide and min low tide
+    max_high_tide_value = combined_data['Altitude'].iloc[peaks].max()
+    max_high_tide_time = high_tides_times[combined_data['Altitude'].iloc[peaks].idxmax()]
+
+    min_low_tide_value = combined_data['Altitude'].iloc[troughs].min()
+    min_low_tide_time = low_tides_times[combined_data['Altitude'].iloc[troughs].idxmin()]
+
+    # Create the stats DataFrame
+    stats_data = pd.DataFrame({
+        'Metric': [
+            'Mean Time Between High Tides (hours)',
+            'Mean Time Between Low Tides (hours)',
+            'Max High Tide (m) + Date/Time',
+            'Min Low Tide (m) + Date/Time'
+        ],
+        'Value': [
+            mean_high_tide_interval,
+            mean_low_tide_interval,
+            f"{max_high_tide_value:.2f} at {max_high_tide_time}",
+            f"{min_low_tide_value:.2f} at {min_low_tide_time}"
+        ]
+    })
+
     # Visualization
     plt.figure(figsize=(12, 6))
     plt.plot(combined_data['datetime'], combined_data['Altitude'], label='Original Data', alpha=0.6, color='blue')
@@ -78,6 +111,7 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     # Save to a new Excel file
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
         combined_data.to_excel(writer, index=False, sheet_name='Processed Data')
+        stats_data.to_excel(writer, index=False, sheet_name='Tidal Statistics')
     print(f"Results saved to {output_file}")
 
 # Main function to handle command-line arguments
