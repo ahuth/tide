@@ -33,8 +33,8 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     combined_data = pd.concat(all_data, ignore_index=True)
     combined_data = combined_data.sort_values(by='datetime').reset_index(drop=True)
 
-    # Apply the formula: y = -0.2216x + 25.367
-    combined_data['Altitude'] = -0.2216 * combined_data['Current (mA)'] + 25.367
+    # Apply the formula: y = 4.51x - 36.4
+    combined_data['Altitude'] = 4.51 * combined_data['Current (mA)'] - 36.4
 
     # Apply Savitzky–Golay filter for smoothing
     window_size = 5   # Adjust for smoothing (should be odd). Tune for accuracy.
