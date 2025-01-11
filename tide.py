@@ -62,12 +62,19 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
     mean_high_tide_interval = high_tide_deltas.mean()
     mean_low_tide_interval = low_tide_deltas.mean()
 
+    # Minimum tide threshold
+    min_tide_threshold = -4
+
     # Calculate max high tide and min low tide
     max_high_tide_value = combined_data['Altitude'].iloc[peaks].max()
     max_high_tide_time = high_tides_times[combined_data['Altitude'].iloc[peaks].idxmax()]
 
-    min_low_tide_value = combined_data['Altitude'].iloc[troughs].min()
-    min_low_tide_time = low_tides_times[combined_data['Altitude'].iloc[troughs].idxmin()]
+    # Filter out low tide values below the threshold
+    valid_troughs = combined_data['Altitude'].iloc[troughs] >= min_tide_threshold
+    valid_troughs_indices = troughs[valid_troughs]
+
+    min_low_tide_value = combined_data['Altitude'].iloc[valid_troughs_indices].min()
+    min_low_tide_time = low_tides_times[combined_data['Altitude'].iloc[valid_troughs_indices].idxmin()]
 
     # Create the stats DataFrame
     stats_data = pd.DataFrame({
