@@ -121,6 +121,12 @@ def process_tidal_data(input_files, output_file='result.xlsx'):
         stats_data.to_excel(writer, index=False, sheet_name='Tidal Statistics')
     print(f"Results saved to {output_file}")
 
+    # Save to a CSV file with the specified format
+    csv_output_file = output_file.replace('.xlsx', '.csv')
+    combined_data['Altitude'] = combined_data['Altitude'].round(3)  # Limit to 3 decimal places
+    combined_data[['datetime', 'Altitude']].to_csv(csv_output_file, index=False, date_format='%m/%d/%Y %H:%M', header=['datetime', 'water level'])
+    print(f"CSV results saved to {csv_output_file}")
+
 # Main function to handle command-line arguments
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process tidal data from Excel files.")
